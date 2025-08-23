@@ -12,4 +12,23 @@ extension View {
             UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
         }
     }
+    
+    func shimmering() -> some View {
+        self
+            .overlay(
+                LinearGradient(
+                    gradient: Gradient(colors: [.clear, .white.opacity(0.4), .clear]),
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
+                .rotationEffect(.degrees(30))
+                .offset(x: -200)
+                .animation(
+                    Animation.linear(duration: 1.5)
+                        .repeatForever(autoreverses: false),
+                    value: UUID()
+                )
+            )
+            .mask(self)
+    }
 }

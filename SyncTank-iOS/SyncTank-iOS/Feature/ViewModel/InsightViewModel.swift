@@ -9,17 +9,21 @@ import SwiftUI
 
 @MainActor
 final class InsightViewModel: ObservableObject {
-    enum Tab: String, CaseIterable { case all = "All", plans = "Plans", insight = "Insight" }
+    enum Tab: String, CaseIterable { case plans = "Urgent", insight = "Insight" }
     
-    @Published var selected: Tab = .all
+    @Published var isFetching: Bool = false
+    @Published var minSkeletonShown: Bool = false
+    @Published var fetchSuccessText: String? = nil
+    
+    @Published var selected: Tab = .plans
     @Published var page: Int = 0
     @Published var items: [DashItem] = []
+    @Published var isLoading = false
     
     let pageSize = 6   // 3열 × 2행
     
     var filtered: [DashItem] {
         switch selected {
-        case .all:   return items
         case .plans: return items.filter { $0.kind == .plan }
         case .insight: return items.filter { $0.kind == .insight }
         }
@@ -44,31 +48,6 @@ final class InsightViewModel: ObservableObject {
         selected = t
         page = 0
         
-        if t == .all {
-            fetchAllDocs()
-        }
-    }
-    
-    func addFromComposer(text: String, attachment: AttachmentPayload?) {
-        let title = text.isEmpty
-        ? (attachment?.isImage == true ? "Image uploaded." :
-            attachment != nil ? "File uploaded." : "Untitled")
-        : text
-        
-        let content = attachment?.isImage == true
-        ? "Attached an image."
-        : (attachment != nil ? "Attached a file." : "Text only.")
-        
-        let newItem = DashItem(
-            kind: attachment != nil ? .attachment : .plan,
-            title: title,
-            content: content,
-            attachment: attachment
-        )
-        
-        withAnimation(.spring(response: 0.3, dampingFraction: 0.9)) {
-            items.insert(newItem, at: 0)
-        }
     }
     
     func remove(_ item: DashItem) {
@@ -99,17 +78,60 @@ final class InsightViewModel: ObservableObject {
         }
     }
     
-    func fetchAllDocs() {
-        Task {
+    func fetchAllDocs() async {
+        isFetching = true
+        minSkeletonShown = false
+        
+        async let delay: Void = {
+            try? await Task.sleep(nanoseconds: 2_000_000_000) // 2초
+            await MainActor.run { self.minSkeletonShown = true }
+        }()
+        
+        async let fetch: Void = {
             do {
                 let docs = try await APIService.shared.fetchDocs()
-                withAnimation {
-                    self.items = docs
+                await MainActor.run {
+                    // 디버깅 로그 추가
+                    print(" 받아온 데이터 개수: \(docs.count)")
+                    for (index, doc) in docs.enumerated() {
+                        print("📱 [\(index)] ID: \(doc.id), Kind: \(doc.kind), Title: \(doc.title)")
+                    }
+                    
+                    withAnimation {
+                        self.items = docs
+                    }
+                    
+                    // 필터링된 데이터 확인
+                    print("🔍 Urgent 탭 데이터: \(self.items.filter { $0.kind == .plan }.count)개")
+                    print("🔍 Insight 탭 데이터: \(self.items.filter { $0.kind == .insight }.count)개")
+                    
+                    self.fetchSuccessText = "요청이 완료되었습니다 ✅"
                 }
-                print("⚒️ Fetched \(docs.count) items")
             } catch {
-                print("❌ Fetch 실패: \(error)")
+                print("❌ Fetch 실패: \(error.localizedDescription)")
             }
+        }()
+        
+        _ = await (delay, fetch)
+        
+        isFetching = false
+    }
+    
+    @MainActor
+    func uploadAndRefresh(text: String, attachment: AttachmentPayload?) async {
+        do {
+            let request = DashItemRequest(
+                id: UUID().uuidString,
+                content: text.isEmpty ? "No message" : text,
+                attachment: attachment?.toRequest()
+            )
+            
+            let result = try await APIService.shared.saveDocs(request)
+            print("✅ 저장 성공: \(result)")
+            
+            await fetchAllDocs()  // 서버 기준으로 다시 가져오기
+        } catch {
+            print("❌ 저장 실패: \(error)")
         }
     }
 }

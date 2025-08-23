@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum ItemKind: String, Codable { case plan, insight, attachment }
+enum ItemKind: String, Codable { case plan, insight }
 
 // 서버/로컬 어디서 오든 썸네일 소스 3종 지원
 enum ImageSource: Hashable, Codable {
@@ -23,6 +23,13 @@ struct AttachmentPayload: Hashable, Codable {
     let fileExt: String?      // "PDF" 등 (isImage=false 일 때 주로 사용)
     let preview: ImageSource? // isImage=true면 거의 필수
     let fileURLString: String?// 파일 원본 URL/경로 (옵션)
+    
+    enum CodingKeys: String, CodingKey {
+        case isImage = "is_image"
+        case fileExt = "file_ext"
+        case preview
+        case fileURLString = "file_url_string"
+    }
 }
 
 
@@ -31,17 +38,30 @@ struct DashItem: Identifiable, Codable, Hashable {
     let kind: ItemKind
     let title: String
     let content: String
+    let leftTime: String?
     let attachment: AttachmentPayload?
+    let isUpdated: Bool
     
     init(id: UUID = .init(),
          kind: ItemKind,
          title: String,
          content: String,
-         attachment: AttachmentPayload? = nil) {
+         leftTime: String?,
+         attachment: AttachmentPayload? = nil,
+         isUpdated: Bool = false
+    ) {
         self.id = id
         self.kind = kind
         self.title = title
         self.content = content
+        self.leftTime = leftTime
         self.attachment = attachment
+        self.isUpdated = isUpdated
+    }
+    
+    enum CodingKeys: String, CodingKey {
+        case id, kind, title, content, attachment
+        case leftTime = "left_time"
+        case isUpdated = "is_updated"
     }
 }

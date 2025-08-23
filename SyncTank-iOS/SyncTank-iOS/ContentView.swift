@@ -12,8 +12,6 @@ struct ContentView: View {
     @State private var inputText = ""
     @State private var pendingAttachment: AttachmentPayload? = nil
     
-    
-    
     var body: some View {
         ZStack {
             // 전체 배경
@@ -31,13 +29,38 @@ struct ContentView: View {
             // 3. 하단 입력창 (Bottom Input Bar) - ZStack으로 겹쳐서 표시
             VStack {
                 Spacer()
-                BottomInputBar(inputText: $inputText){ text, attachment in
-                    viewModel.addFromComposer(text: text, attachment: attachment)
+                BottomInputBar(inputText: $inputText) { text, attachment in
+                    Task {
+                        await viewModel.uploadAndRefresh(text: text, attachment: attachment)
+                    }
                 }
             }
         }
         .navigationBarHidden(true)
         .hideKeyboardOnTap()
+        .overlay(
+            Group {
+                if let text = viewModel.fetchSuccessText {
+                    Text(text)
+                        .font(.caption)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 10)
+                        .background(Color.black.opacity(0.85))
+                        .foregroundColor(.white)
+                        .cornerRadius(12)
+                        .padding(.bottom, 100)
+                        .transition(.opacity)
+                        .onAppear {
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                                withAnimation {
+                                    viewModel.fetchSuccessText = nil
+                                }
+                            }
+                        }
+                }
+            },
+            alignment: .bottom
+        )
     }
 }
 

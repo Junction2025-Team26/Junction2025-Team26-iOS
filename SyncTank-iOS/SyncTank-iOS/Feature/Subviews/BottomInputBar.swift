@@ -44,30 +44,10 @@ struct BottomInputBar: View {
                 // 입력 필드
                 CapsuleInputView(text: $inputText) { value in
                     print("Send: \(value)")
-                    
                     let attachmentCopy = pendingAttachment
-                    
                     onSend(value, attachmentCopy)
-                    
-                    // 서버에 전송
-                    Task {
-                        do {
-                            let id = UUID().uuidString
-                            let content = value.isEmpty ? "No message" : value
-                            let request = DashItemRequest(
-                                id: id,
-                                content: content,
-                                attachment: attachmentCopy?.toRequest()
-                            )
-                            
-                            let result = try await APIService.shared.saveDocs(request)
-                            print("✅ 서버 저장 성공: \(result)")
-                        } catch {
-                            print("❌ 서버 저장 실패: \(error)")
-                        }
-                    }
+                    inputText=""
                     pendingAttachment = nil
-                    // TODO: UpStage API 호출
                 }
             }
             

@@ -24,33 +24,32 @@ struct DashboardCard: View {
                     .foregroundColor(Color(.systemGray3))
                     .lineLimit(3)
             }
-            
-            HStack {
-                Spacer()
-                switch item.kind {
-                case .plan:
-                    PlanThumbnailView()
-                    
-                case .insight, .attachment:
-                    if let payload = item.attachment {
-                        VStack(alignment: .trailing, spacing: 4) {
-                            AttachmentPreview(payload: payload)
-                            
-                            if let urlString = payload.fileURLString,
-                               let fileName = URL(string: urlString)?.lastPathComponent {
-                                Text(fileName)
-                                    .font(.system(size: 13, weight: .medium))
-                                    .foregroundColor(.white)
-                                    .lineLimit(1)
-                            }
+            // 첨부 미디어가 있을 경우만 표시
+            if let payload = item.attachment {
+                HStack {
+                    Spacer()
+                    VStack(alignment: .trailing, spacing: 4) {
+                        AttachmentPreview(payload: payload)
+                        
+                        if let urlString = payload.fileURLString,
+                           let fileName = URL(string: urlString)?.lastPathComponent {
+                            Text(fileName)
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundColor(.white)
+                                .lineLimit(1)
                         }
-                    } else {
-                        EmptyView()
+                    }
+                }
+            } else {
+                // 첨부 없을 경우 대표 썸네일 등
+                if item.kind == .plan {
+                    HStack {
+                        Spacer()
+                        PlanThumbnailView()
                     }
                 }
             }
         }
-        // ✅ VStack 전체에 적용되어야 함
         .padding(20)
         .background(Color(hex: "191918"))
         .cornerRadius(16)
