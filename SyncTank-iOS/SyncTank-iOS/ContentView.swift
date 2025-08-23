@@ -10,6 +10,9 @@ import SwiftUI
 struct ContentView: View {
     @StateObject private var viewModel = InsightViewModel()
     @State private var inputText = ""
+    @State private var pendingAttachment: AttachmentPayload? = nil
+    
+    
     
     var body: some View {
         ZStack {
@@ -28,10 +31,13 @@ struct ContentView: View {
             // 3. 하단 입력창 (Bottom Input Bar) - ZStack으로 겹쳐서 표시
             VStack {
                 Spacer()
-                BottomInputBar(inputText: $inputText)
+                BottomInputBar(inputText: $inputText){ text, attachment in
+                    viewModel.addFromComposer(text: text, attachment: attachment)
+                }
             }
         }
         .navigationBarHidden(true)
+        .hideKeyboardOnTap()
     }
 }
 

@@ -29,9 +29,22 @@
 		7959F3B52E59328100939E14 /* SyncTank-iOSUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "SyncTank-iOSUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		D5A127FC2E59B35000068373 /* Exceptions for "SyncTank-iOS" folder in "SyncTank-iOS" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 7959F39D2E59328000939E14 /* SyncTank-iOS */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		7959F3A02E59328000939E14 /* SyncTank-iOS */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				D5A127FC2E59B35000068373 /* Exceptions for "SyncTank-iOS" folder in "SyncTank-iOS" target */,
+			);
 			path = "SyncTank-iOS";
 			sourceTree = "<group>";
 		};
@@ -397,9 +410,13 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = U9JJVCW82P;
+				DEVELOPMENT_TEAM = 9S8SHSW95K;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "SyncTank-iOS/Info.plist";
+				INFOPLIST_KEY_NSCameraUsageDescription = "카메라로 사진을 촬영하여 첨부합니다.";
+				INFOPLIST_KEY_NSDocumentsFolderUsageDescription = "파일 첨부를 위해 문서 접근이 필요합니다.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "앨범에서 사진을 선택하려면 접근 권한이 필요합니다.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -425,9 +442,13 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = U9JJVCW82P;
+				DEVELOPMENT_TEAM = 9S8SHSW95K;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "SyncTank-iOS/Info.plist";
+				INFOPLIST_KEY_NSCameraUsageDescription = "카메라로 사진을 촬영하여 첨부합니다.";
+				INFOPLIST_KEY_NSDocumentsFolderUsageDescription = "파일 첨부를 위해 문서 접근이 필요합니다.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "앨범에서 사진을 선택하려면 접근 권한이 필요합니다.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

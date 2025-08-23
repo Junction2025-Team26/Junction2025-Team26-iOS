@@ -19,24 +19,38 @@ struct DashboardCard: View {
                     .foregroundColor(.white)
                     .lineLimit(2)
                 
-                Text(item.subtitle)
+                Text(item.content)
                     .font(.system(size: 14))
                     .foregroundColor(Color(.systemGray3))
                     .lineLimit(3)
             }
             
-            // 우측 콘텐츠 (썸네일, 파일 등)
             HStack {
                 Spacer()
-                
                 switch item.kind {
                 case .plan:
                     PlanThumbnailView()
-                case .file, .photo:
-                    FileAttachmentView(fileBadge: item.fileBadge)
+                    
+                case .insight, .attachment:
+                    if let payload = item.attachment {
+                        VStack(alignment: .trailing, spacing: 4) {
+                            AttachmentPreview(payload: payload)
+                            
+                            if let urlString = payload.fileURLString,
+                               let fileName = URL(string: urlString)?.lastPathComponent {
+                                Text(fileName)
+                                    .font(.system(size: 13, weight: .medium))
+                                    .foregroundColor(.white)
+                                    .lineLimit(1)
+                            }
+                        }
+                    } else {
+                        EmptyView()
+                    }
                 }
             }
         }
+        // ✅ VStack 전체에 적용되어야 함
         .padding(20)
         .background(Color(hex: "191918"))
         .cornerRadius(16)

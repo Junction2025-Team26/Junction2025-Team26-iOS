@@ -8,7 +8,6 @@
 import SwiftUI
 
 struct FileAttachmentView: View {
-    let fileBadge: String?
     
     var body: some View {
         HStack(spacing: 12) {
@@ -30,11 +29,6 @@ struct FileAttachmentView: View {
                     .foregroundColor(.white)
                     .lineLimit(1)
                 
-                if let badge = fileBadge {
-                    Text(badge)
-                        .font(.system(size: 12))
-                        .foregroundColor(Color(.systemGray3))
-                }
             }
         }
         .padding(16)
