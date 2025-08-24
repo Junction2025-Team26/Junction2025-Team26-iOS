@@ -7,19 +7,57 @@
 
 import Foundation
 
-enum ItemKind: String, Codable { case plan, insight }
+enum ItemKind: String, Codable {
+    case plan = "plan"
+    case insight = "insight"
+}
 
 // 서버/로컬 어디서 오든 썸네일 소스 3종 지원
 enum ImageSource: Hashable, Codable {
-    case url(String)          // 원격 썸네일 URL (문자열로 저장)
-    case base64(String)       // 썸네일 Base64 문자열
-    case localPath(String)    // 로컬 파일 경로 (드롭 직후 미리보기 등)
+    case url(String)
+    case base64(String)
+    case localPath(String)
     
-    // Codable 구현은 필요시 추가(지금은 View 전용으로만 사용해도 OK)
+    enum CodingKeys: String, CodingKey {
+        case type, value
+    }
+    
+    enum SourceType: String, Codable {
+        case url, base64, localPath
+    }
+    
+    // 디코딩
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let type = try container.decode(SourceType.self, forKey: .type)
+        let value = try container.decode(String.self, forKey: .value)
+        
+        switch type {
+        case .url: self = .url(value)
+        case .base64: self = .base64(value)
+        case .localPath: self = .localPath(value)
+        }
+    }
+    
+    // 인코딩
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        switch self {
+        case .url(let val):
+            try container.encode(SourceType.url, forKey: .type)
+            try container.encode(val, forKey: .value)
+        case .base64(let val):
+            try container.encode(SourceType.base64, forKey: .type)
+            try container.encode(val, forKey: .value)
+        case .localPath(let val):
+            try container.encode(SourceType.localPath, forKey: .type)
+            try container.encode(val, forKey: .value)
+        }
+    }
 }
 
 struct AttachmentPayload: Hashable, Codable {
-    let isImage: Bool         // true면 이미지 썸네일, false면 파일 배지
+    let isImage: Bool?         // true면 이미지 썸네일, false면 파일 배지
     let fileExt: String?      // "PDF" 등 (isImage=false 일 때 주로 사용)
     let preview: ImageSource? // isImage=true면 거의 필수
     let fileURLString: String?// 파일 원본 URL/경로 (옵션)
@@ -34,9 +72,10 @@ struct AttachmentPayload: Hashable, Codable {
 
 
 struct DashItem: Identifiable, Codable, Hashable {
+    
     let id: UUID
-    let kind: ItemKind
-    let title: String
+    let kind: ItemKind?
+    let title: String?
     let content: String
     let leftTime: String?
     let attachment: AttachmentPayload?
@@ -58,10 +97,28 @@ struct DashItem: Identifiable, Codable, Hashable {
         self.attachment = attachment
         self.isUpdated = isUpdated
     }
+}
+
+struct DashItemDTO: Decodable {
+    let id: UUID
+    let kind: ItemKind?
+    let title: String?
+    let content: String
+    let leftTime: String?
+    let attachment: AttachmentPayload?
+    let isUpdated: Bool
     
     enum CodingKeys: String, CodingKey {
         case id, kind, title, content, attachment
         case leftTime = "left_time"
         case isUpdated = "is_updated"
+    }
+    
+    func toDomain() -> DashItem {
+        return DashItem(id: id,
+                        kind: kind ?? .insight,
+                        title: title ?? "",
+                        content: content,
+                        leftTime: leftTime ?? "")
     }
 }
