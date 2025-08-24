@@ -9,6 +9,7 @@ import SwiftUI
 
 struct CapsulePlaceHolderView: View {
     @Binding var text: String
+    @FocusState var textfieldFocus: Bool
     var onSend: (String) -> Void = { _ in }
     
     var body: some View {
@@ -25,6 +26,7 @@ struct CapsulePlaceHolderView: View {
                 .foregroundStyle(.primary)
                 .submitLabel(.send)
                 .onSubmit { onSend(text) }
+                .focused($textfieldFocus)
         }
         .padding(.vertical, 14)
     }

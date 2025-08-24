@@ -13,19 +13,17 @@ struct CapsuleInputView: View {
     
     var body: some View {
         HStack(spacing: 12) {
-            
             CapsulePlaceHolderView(text: $text, onSend: onSend)
                 .padding(.leading, 20)
             
-            Button {
-                onSend(text)
-            } label: {
-                Image(systemName: "arrow.up.circle.fill")
-                    .font(.system(size: 30))
-                    .foregroundColor(.white)
-            }
-            .buttonStyle(.plain)
-            .padding(.trailing, 14)
+            Image(systemName: "arrow.up.circle.fill")
+                .font(.system(size: 30))
+                .foregroundColor(.white)
+                .hideKeyboardOnTap(action: {
+                    onSend(text)
+                })
+                .buttonStyle(.plain)
+                .padding(.trailing, 14)
         }
         .frame(width: 315, height: 46)
         .background(

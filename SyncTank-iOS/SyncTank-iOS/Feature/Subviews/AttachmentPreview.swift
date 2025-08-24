@@ -10,7 +10,7 @@ import SwiftUI
 struct AttachmentPreview: View {
     let payload: AttachmentPayload
     var body: some View {
-        if payload.isImage {
+        if payload.isImage ?? true {
             ImageThumb(source: payload.preview)
         } else {
             FileBadge(ext: payload.fileExt ?? "FILE")

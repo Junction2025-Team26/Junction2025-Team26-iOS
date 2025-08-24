@@ -43,7 +43,9 @@ final class APIService {
         request.httpMethod = "GET"
         
         do {
-            let (data, response) = try await URLSession.shared.data(for: request)
+            let configuration = URLSessionConfiguration.default
+            let session = URLSession(configuration: configuration)
+            let (data, response) = try await session.data(for: request)
             
             guard let httpResponse = response as? HTTPURLResponse else {
                 throw APIError.invalidResponse
@@ -56,6 +58,7 @@ final class APIService {
                 do {
                     return try decoder.decode([DashItem].self, from: data)
                 } catch {
+                    print(error)
                     throw APIError.decoding("Failed to decode response: \(error)")
                 }
                 

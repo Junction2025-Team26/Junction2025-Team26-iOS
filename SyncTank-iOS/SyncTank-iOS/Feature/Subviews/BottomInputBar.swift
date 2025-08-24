@@ -10,7 +10,7 @@ import SwiftUI
 struct BottomInputBar: View {
     @Binding var inputText: String
     @State private var showingModal = false
-    @State private var pendingAttachment: AttachmentPayload? = nil
+    @State private var pendingAttachment: AttachmentPayload = AttachmentPayload(isImage: false, fileExt: "", preview: nil, fileURLString: "")
     
     @State private var activePicker: PickerType? = nil
     
@@ -19,10 +19,10 @@ struct BottomInputBar: View {
     var body: some View {
         VStack(spacing: 8) {
             
-            if let att = pendingAttachment {
+            if pendingAttachment.preview != nil {
                 HStack {
                     Spacer().frame(width: 60)
-                    AttachmentPreview(payload: att)
+                    AttachmentPreview(payload: pendingAttachment)
                     Spacer()
                 }
                 .transition(.move(edge: .bottom).combined(with: .opacity))
@@ -46,8 +46,8 @@ struct BottomInputBar: View {
                     print("Send: \(value)")
                     let attachmentCopy = pendingAttachment
                     onSend(value, attachmentCopy)
-                    inputText=""
-                    pendingAttachment = nil
+                    inputText = ""
+                    pendingAttachment = AttachmentPayload(isImage: false, fileExt: "", preview: nil, fileURLString: "")
                 }
             }
             
@@ -76,13 +76,13 @@ struct BottomInputBar: View {
             )
             .presentationDetents([.height(320)])
             .presentationDragIndicator(.visible)
-            .hideKeyboardOnTap()
+            .hideKeyboardOnTap(action: {})
         }
         .sheet(item: $activePicker) { picker in
             switch picker {
             case .camera:
                 CameraPicker { url, _ in
-                    pendingAttachment = makeBase64PreviewPayload(from: url)
+                    pendingAttachment = makeBase64PreviewPayload(from: url) ?? pendingAttachment
                     activePicker = nil
                 } onCancel: {
                     activePicker = nil
@@ -90,7 +90,7 @@ struct BottomInputBar: View {
                 
             case .photo:
                 PhotoPicker { url, _ in
-                    pendingAttachment = makeBase64PreviewPayload(from: url)
+                    pendingAttachment = makeBase64PreviewPayload(from: url) ?? pendingAttachment
                     activePicker = nil
                 } onCancel: {
                     activePicker = nil
@@ -98,7 +98,7 @@ struct BottomInputBar: View {
                 
             case .file:
                 DocumentPicker { url in
-                    pendingAttachment = makeBase64PreviewPayload(from: url)
+                    pendingAttachment = makeBase64PreviewPayload(from: url) ?? pendingAttachment
                     activePicker = nil
                 } onCancel: {
                     activePicker = nil
@@ -110,6 +110,14 @@ struct BottomInputBar: View {
 
 extension AttachmentPayload {
     func toRequest() -> AttachmentPayloadRequest? {
+        if isImage == false {
+            return AttachmentPayloadRequest(
+                isImage: isImage ?? true,
+                fileExt: fileExt ?? "FILE",
+                preview: PreviewSourceRequest(type: "base64", value: ""),
+                fileUrlString: fileURLString ?? ""
+            )
+        }
         guard let preview = preview else { return nil }
         
         let previewRequest: PreviewSourceRequest
@@ -123,10 +131,10 @@ extension AttachmentPayload {
         }
         
         return AttachmentPayloadRequest(
-            is_image: isImage,
-            file_ext: fileExt ?? "FILE",
+            isImage: isImage ?? true,
+            fileExt: fileExt ?? "FILE",
             preview: previewRequest,
-            file_url_string: fileURLString ?? ""
+            fileUrlString: fileURLString ?? ""
         )
     }
 }

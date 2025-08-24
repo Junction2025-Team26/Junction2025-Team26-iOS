@@ -6,6 +6,8 @@
 //
 
 import SwiftUI
+import UserNotifications
+
 
 @MainActor
 final class InsightViewModel: ObservableObject {
@@ -18,7 +20,6 @@ final class InsightViewModel: ObservableObject {
     @Published var selected: Tab = .plans
     @Published var page: Int = 0
     @Published var items: [DashItem] = []
-    @Published var isLoading = false
     
     let pageSize = 6   // 3열 × 2행
     
@@ -57,6 +58,51 @@ final class InsightViewModel: ObservableObject {
         page = min(page, max(0, pageCount - 1))
     }
     
+    func fetchAllDocs() async {
+        isFetching = true
+        
+        do {
+            let docs = try await APIService.shared.fetchDocs()
+            await MainActor.run {
+                // 디버깅 로그 추가
+                print(" 받아온 데이터 개수: \(docs.count)")
+                for (index, doc) in docs.enumerated() {
+                    print("📱 [\(index)] ID: \(doc.id), Kind: \(doc.kind), Title: \(doc.title), tile: \(doc.leftTime)")
+                }
+                
+                withAnimation {
+                    self.items = docs
+                }
+                
+                // items 시간순 정렬
+                let times = self.items.filter({
+                    $0.leftTime != nil
+                })
+                
+                let remains = self.items.filter({
+                    $0.leftTime == nil
+                })
+                
+                self.items = times.sorted(by: { $0.leftTime! < $1.leftTime! }) + remains
+                
+                let firstItem = times.first
+                
+                guard let firstItem = firstItem else { return }
+                
+                sendLocalNotification(item: firstItem)
+                
+                // 필터링된 데이터 확인
+                print("🔍 Urgent 탭 데이터: \(self.items.filter { $0.kind == .plan }.count)개")
+                print("🔍 Insight 탭 데이터: \(self.items.filter { $0.kind == .insight }.count)개")
+                
+                self.fetchSuccessText = "요청이 완료되었습니다."
+            }
+        } catch {
+            print("❌ Fetch 실패: \(error.localizedDescription)")
+        }
+        
+        isFetching = false
+    }
     
     func testPostToSavedocs(with url: URL) {
         Task {
@@ -77,49 +123,31 @@ final class InsightViewModel: ObservableObject {
             }
         }
     }
-    
-    func fetchAllDocs() async {
-        isFetching = true
-        minSkeletonShown = false
-        
-        async let delay: Void = {
-            try? await Task.sleep(nanoseconds: 2_000_000_000) // 2초
-            await MainActor.run { self.minSkeletonShown = true }
-        }()
-        
-        async let fetch: Void = {
-            do {
-                let docs = try await APIService.shared.fetchDocs()
-                await MainActor.run {
-                    // 디버깅 로그 추가
-                    print(" 받아온 데이터 개수: \(docs.count)")
-                    for (index, doc) in docs.enumerated() {
-                        print("📱 [\(index)] ID: \(doc.id), Kind: \(doc.kind), Title: \(doc.title)")
-                    }
-                    
-                    withAnimation {
-                        self.items = docs
-                    }
-                    
-                    // 필터링된 데이터 확인
-                    print("🔍 Urgent 탭 데이터: \(self.items.filter { $0.kind == .plan }.count)개")
-                    print("🔍 Insight 탭 데이터: \(self.items.filter { $0.kind == .insight }.count)개")
-                    
-                    self.fetchSuccessText = "요청이 완료되었습니다 ✅"
-                }
-            } catch {
-                print("❌ Fetch 실패: \(error.localizedDescription)")
+
+    func sendLocalNotification(item: DashItem) {
+        let content = UNMutableNotificationContent()
+        content.title = "'\(item.title!)' 일정이 있어요!"
+        content.body = "까먹지 않도록 잘 기억하세요!!!"
+        content.sound = .default
+
+        // 3초 뒤 발송
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 3, repeats: false)
+
+        let request = UNNotificationRequest(identifier: UUID().uuidString,
+                                            content: content,
+                                            trigger: trigger)
+
+        UNUserNotificationCenter.current().add(request) { error in
+            if let error = error {
+                print("알림 등록 실패: \(error.localizedDescription)")
             }
-        }()
-        
-        _ = await (delay, fetch)
-        
-        isFetching = false
+        }
     }
     
     @MainActor
     func uploadAndRefresh(text: String, attachment: AttachmentPayload?) async {
         do {
+            isFetching = true
             let request = DashItemRequest(
                 id: UUID().uuidString,
                 content: text.isEmpty ? "No message" : text,
@@ -130,8 +158,10 @@ final class InsightViewModel: ObservableObject {
             print("✅ 저장 성공: \(result)")
             
             await fetchAllDocs()  // 서버 기준으로 다시 가져오기
+            isFetching = false
         } catch {
             print("❌ 저장 실패: \(error)")
+            isFetching = false
         }
     }
 }

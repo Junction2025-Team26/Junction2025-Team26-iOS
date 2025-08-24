@@ -7,9 +7,10 @@
 import SwiftUI
 
 extension View {
-    func hideKeyboardOnTap() -> some View {
+    func hideKeyboardOnTap(action: @escaping () -> Void) -> some View {
         self.onTapGesture {
             UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+            action()
         }
     }
     

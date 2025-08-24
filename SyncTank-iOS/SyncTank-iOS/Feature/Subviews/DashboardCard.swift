@@ -14,7 +14,7 @@ struct DashboardCard: View {
         VStack(alignment: .leading, spacing: 16) {
             // 제목과 부제목
             VStack(alignment: .leading, spacing: 8) {
-                Text(item.title)
+                Text(item.title ?? "")
                     .font(.system(size: 18, weight: .semibold))
                     .foregroundColor(.white)
                     .lineLimit(2)

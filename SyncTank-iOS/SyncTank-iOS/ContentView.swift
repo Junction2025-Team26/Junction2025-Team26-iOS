@@ -35,9 +35,15 @@ struct ContentView: View {
                     }
                 }
             }
+            
+            Rectangle()
+                .fill(Color.black.opacity(0.5))
+                .blur(radius: 15)
+                .opacity(viewModel.isFetching ? 1 : 0)
+                .animation(.spring(duration: 1), value: viewModel.isFetching)
         }
         .navigationBarHidden(true)
-        .hideKeyboardOnTap()
+        .hideKeyboardOnTap(action: {})
         .overlay(
             Group {
                 if let text = viewModel.fetchSuccessText {

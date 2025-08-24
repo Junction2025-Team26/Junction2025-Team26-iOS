@@ -13,12 +13,7 @@ struct ContentListView: View {
     var body: some View {
         ScrollView {
             LazyVStack(spacing: 16) {
-                if viewModel.isFetching {
-                    // 페칭 중일 때는 항상 6개 스켈레톤 표시 (페이지 크기만큼)
-                    ForEach(0..<viewModel.pageSize, id: \.self) { _ in
-                        SkeletonCard()
-                    }
-                } else if viewModel.items.isEmpty {
+                if viewModel.items.isEmpty {
                     // 데이터가 없을 때 빈 상태 표시
                     VStack(spacing: 16) {
                         Image(systemName: "doc.text")
@@ -36,6 +31,7 @@ struct ContentListView: View {
                         DashboardCard(item: item)
                     }
                 }
+                Spacer().frame(height: 60)
             }
             .padding(.horizontal, 20)
         }

@@ -14,10 +14,10 @@ struct DashItemRequest: Codable {
 }
 
 struct AttachmentPayloadRequest: Codable {
-    let is_image: Bool
-    let file_ext: String
+    let isImage: Bool
+    let fileExt: String
     let preview: PreviewSourceRequest
-    let file_url_string: String
+    let fileUrlString: String
 }
 
 struct PreviewSourceRequest: Codable {
